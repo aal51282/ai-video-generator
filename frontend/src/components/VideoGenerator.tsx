@@ -7,6 +7,7 @@ interface GenerationState {
   videoUrl?: string;
   error?: string;
   progress?: number;
+  stage?: string;
 }
 
 export default function VideoGenerator() {
@@ -18,19 +19,48 @@ export default function VideoGenerator() {
     status: 'idle'
   });
 
+  const updateProgress = (stage: string, progress: number) => {
+    setGenerationState(prev => ({
+      ...prev,
+      stage,
+      progress
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    setGenerationState({ status: 'generating', progress: 0 });
-    
+    setGenerationState({ 
+      status: 'generating', 
+      progress: 0,
+      stage: 'Initializing...'
+    });
+
     try {
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setGenerationState(prev => ({
-          ...prev,
-          progress: prev.progress && prev.progress < 90 ? prev.progress + 10 : prev.progress
-        }));
-      }, 2000);
+      // Text processing stage (0-10%)
+      updateProgress('Processing text...', 5);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Image generation stage (10-40%)
+      const sentences = text.split('.').filter(s => s.trim().length > 0);
+      const imageProgress = 30 / sentences.length;
+      updateProgress('Generating images...', 10);
+
+      // Simulate image generation progress
+      for (let i = 0; i < sentences.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        updateProgress('Generating images...', 10 + (i + 1) * imageProgress);
+      }
+
+      // Voice generation stage (40-70%)
+      updateProgress('Generating voice narration...', 40);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      updateProgress('Generating voice narration...', 55);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      updateProgress('Generating voice narration...', 70);
+
+      // Video composition stage (70-90%)
+      updateProgress('Composing video...', 70);
 
       const response = await fetch('http://localhost:8000/generate-video', {
         method: 'POST',
@@ -44,16 +74,23 @@ export default function VideoGenerator() {
         }),
       });
 
-      clearInterval(progressInterval);
-
       if (!response.ok) {
         throw new Error('Failed to generate video');
       }
 
+      // Final stage (90-100%)
+      updateProgress('Finalizing...', 90);
       const blob = await response.blob();
       const videoUrl = URL.createObjectURL(blob);
-      setVideoTitle(text.split('.')[0].slice(0, 50)); // Set default title from first sentence
-      setGenerationState({ status: 'success', videoUrl });
+      setVideoTitle(text.split('.')[0].slice(0, 50));
+      
+      // Success
+      setGenerationState({ 
+        status: 'success', 
+        videoUrl,
+        progress: 100,
+        stage: 'Complete!'
+      });
     } catch {
       setGenerationState({
         status: 'error',
@@ -64,8 +101,8 @@ export default function VideoGenerator() {
 
   const getDownloadFilename = () => {
     const sanitizedTitle = videoTitle
-      .replace(/[^a-zA-Z0-9]/g, '_') // Replace special characters with underscore
-      .replace(/_+/g, '_') // Replace multiple underscores with single
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .replace(/_+/g, '_')
       .trim();
     return `${sanitizedTitle || 'generated_video'}.mp4`;
   };
@@ -155,9 +192,20 @@ export default function VideoGenerator() {
           }`}
         >
           {generationState.status === 'generating' ? (
-            <div className="flex items-center justify-center gap-3">
-              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-              <span>Generating Video... {generationState.progress}%</span>
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-3">
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                <span>{generationState.stage}</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-1.5 mt-2">
+                <div 
+                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${generationState.progress}%` }}
+                />
+              </div>
+              <div className="text-sm text-gray-300 text-center">
+                {generationState.progress}%
+              </div>
             </div>
           ) : (
             <span className="flex items-center justify-center gap-2">
