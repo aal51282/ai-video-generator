@@ -6,6 +6,7 @@ interface GenerationState {
   status: 'idle' | 'generating' | 'success' | 'error';
   videoUrl?: string;
   error?: string;
+  progress?: number;
 }
 
 export default function VideoGenerator() {
@@ -19,9 +20,17 @@ export default function VideoGenerator() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    setGenerationState({ status: 'generating' });
+    setGenerationState({ status: 'generating', progress: 0 });
     
     try {
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setGenerationState(prev => ({
+          ...prev,
+          progress: prev.progress && prev.progress < 90 ? prev.progress + 10 : prev.progress
+        }));
+      }, 2000);
+
       const response = await fetch('http://localhost:8000/generate-video', {
         method: 'POST',
         headers: {
@@ -33,6 +42,8 @@ export default function VideoGenerator() {
           image_style: imageStyle,
         }),
       });
+
+      clearInterval(progressInterval);
 
       if (!response.ok) {
         throw new Error('Failed to generate video');
@@ -56,17 +67,20 @@ export default function VideoGenerator() {
           <label htmlFor="text" className="block text-sm font-medium text-gray-300">
             Enter your text
           </label>
-          <div className="relative">
-            <textarea
-              id="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="w-full h-40 px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-100 placeholder-gray-400"
-              placeholder="Enter a paragraph or two to generate a video..."
-              required
-            />
-            <div className="absolute bottom-3 right-3 text-xs text-gray-400">
-              {text.length} characters
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300" />
+            <div className="relative">
+              <textarea
+                id="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-full h-40 px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-100 placeholder-gray-400"
+                placeholder="Enter a paragraph or two to generate a video..."
+                required
+              />
+              <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-gray-800/50 px-2 py-1 rounded-md">
+                {text.length} characters
+              </div>
             </div>
           </div>
         </div>
@@ -76,44 +90,60 @@ export default function VideoGenerator() {
             <label htmlFor="imageStyle" className="block text-sm font-medium text-gray-300">
               Image Style
             </label>
-            <select
-              id="imageStyle"
-              value={imageStyle}
-              onChange={(e) => setImageStyle(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100"
-            >
-              <option value="digital art">Digital Art</option>
-              <option value="realistic">Realistic</option>
-              <option value="anime">Anime</option>
-              <option value="watercolor">Watercolor</option>
-              <option value="oil painting">Oil Painting</option>
-              <option value="cinematic">Cinematic</option>
-              <option value="3d render">3D Render</option>
-            </select>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300" />
+              <select
+                id="imageStyle"
+                value={imageStyle}
+                onChange={(e) => setImageStyle(e.target.value)}
+                className="relative w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 appearance-none cursor-pointer"
+              >
+                <option value="digital art">Digital Art</option>
+                <option value="realistic">Realistic</option>
+                <option value="anime">Anime</option>
+                <option value="watercolor">Watercolor</option>
+                <option value="oil painting">Oil Painting</option>
+                <option value="cinematic">Cinematic</option>
+                <option value="3d render">3D Render</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4">
             <label htmlFor="voiceStyle" className="block text-sm font-medium text-gray-300">
               Voice Style
             </label>
-            <select
-              id="voiceStyle"
-              value={voiceStyle}
-              onChange={(e) => setVoiceStyle(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100"
-            >
-              <option value="natural">Natural</option>
-              <option value="friendly">Friendly</option>
-              <option value="professional">Professional</option>
-              <option value="newscast">Newscast</option>
-            </select>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300" />
+              <select
+                id="voiceStyle"
+                value={voiceStyle}
+                onChange={(e) => setVoiceStyle(e.target.value)}
+                className="relative w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 appearance-none cursor-pointer"
+              >
+                <option value="natural">Natural</option>
+                <option value="friendly">Friendly</option>
+                <option value="professional">Professional</option>
+                <option value="newscast">Newscast</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 
         <button
           type="submit"
           disabled={generationState.status === 'generating'}
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+          className={`relative w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 overflow-hidden ${
             generationState.status === 'generating'
               ? 'bg-gray-600 cursor-not-allowed'
               : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
@@ -122,24 +152,43 @@ export default function VideoGenerator() {
           {generationState.status === 'generating' ? (
             <div className="flex items-center justify-center gap-3">
               <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-              <span>Generating Video...</span>
+              <span>Generating Video... {generationState.progress}%</span>
             </div>
           ) : (
-            'Generate Video'
+            <span className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Generate Video
+            </span>
           )}
         </button>
       </form>
 
       {generationState.status === 'error' && (
         <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-          <p className="text-red-200 text-sm">{generationState.error}</p>
+          <div className="flex items-center gap-3">
+            <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-red-200 text-sm">{generationState.error}</p>
+          </div>
         </div>
       )}
 
       {generationState.status === 'success' && generationState.videoUrl && (
         <div className="mt-8 space-y-6">
-          <h3 className="text-lg font-medium text-gray-200">Generated Video</h3>
-          <div className="relative rounded-lg overflow-hidden bg-gray-900">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-200">Generated Video</h3>
+            <div className="flex items-center gap-2 text-green-400 text-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Generation Complete
+            </div>
+          </div>
+          <div className="relative rounded-lg overflow-hidden bg-gray-900 group">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <video
               controls
               className="w-full aspect-video"
@@ -151,12 +200,14 @@ export default function VideoGenerator() {
           <a
             href={generationState.videoUrl}
             download="generated-video.mp4"
-            className="inline-flex items-center justify-center w-full py-3 px-4 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors gap-2"
+            className="group relative inline-flex items-center justify-center w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-            Download Video
+            <span className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download Video
+            </span>
           </a>
         </div>
       )}
