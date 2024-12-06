@@ -41,7 +41,9 @@ This project generates short videos from text input using various AI technologie
    python -m venv venv
    source venv/bin/activate  # On Windows: .\venv\Scripts\activate
    pip install -r requirements.txt
-   uvicorn main:app --reload
+
+   .\venv\Scripts\activate
+   uvicorn app.main:app --reload
    ```
 
 4. Create a `.env` file in the backend directory with your API keys:
