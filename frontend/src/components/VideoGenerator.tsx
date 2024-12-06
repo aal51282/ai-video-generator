@@ -61,42 +61,38 @@ export default function VideoGenerator() {
   };
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 shadow-2xl">
+    <div className="bg-gray-800 rounded-xl p-8 shadow-xl">
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-4">
-          <label htmlFor="text" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="text" className="block text-sm font-medium text-gray-200">
             Enter your text
           </label>
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300" />
-            <div className="relative">
-              <textarea
-                id="text"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                className="w-full h-40 px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-100 placeholder-gray-400"
-                placeholder="Enter a paragraph or two to generate a video..."
-                required
-              />
-              <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-gray-800/50 px-2 py-1 rounded-md">
-                {text.length} characters
-              </div>
+          <div className="relative">
+            <textarea
+              id="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="w-full h-40 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-100 placeholder-gray-400 shadow-sm"
+              placeholder="Enter a paragraph or two to generate a video..."
+              required
+            />
+            <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded-md shadow-sm">
+              {text.length} characters
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <label htmlFor="imageStyle" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="imageStyle" className="block text-sm font-medium text-gray-200">
               Image Style
             </label>
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300" />
+            <div className="relative">
               <select
                 id="imageStyle"
                 value={imageStyle}
                 onChange={(e) => setImageStyle(e.target.value)}
-                className="relative w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 appearance-none cursor-pointer"
+                className="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 appearance-none cursor-pointer shadow-sm"
               >
                 <option value="digital art">Digital Art</option>
                 <option value="realistic">Realistic</option>
@@ -115,16 +111,15 @@ export default function VideoGenerator() {
           </div>
 
           <div className="space-y-4">
-            <label htmlFor="voiceStyle" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="voiceStyle" className="block text-sm font-medium text-gray-200">
               Voice Style
             </label>
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300" />
+            <div className="relative">
               <select
                 id="voiceStyle"
                 value={voiceStyle}
                 onChange={(e) => setVoiceStyle(e.target.value)}
-                className="relative w-full px-4 py-2.5 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 appearance-none cursor-pointer"
+                className="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 appearance-none cursor-pointer shadow-sm"
               >
                 <option value="natural">Natural</option>
                 <option value="friendly">Friendly</option>
@@ -143,7 +138,7 @@ export default function VideoGenerator() {
         <button
           type="submit"
           disabled={generationState.status === 'generating'}
-          className={`relative w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 overflow-hidden ${
+          className={`relative w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 shadow-sm ${
             generationState.status === 'generating'
               ? 'bg-gray-600 cursor-not-allowed'
               : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
@@ -166,7 +161,7 @@ export default function VideoGenerator() {
       </form>
 
       {generationState.status === 'error' && (
-        <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+        <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg shadow-sm">
           <div className="flex items-center gap-3">
             <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -187,8 +182,7 @@ export default function VideoGenerator() {
               Generation Complete
             </div>
           </div>
-          <div className="relative rounded-lg overflow-hidden bg-gray-900 group">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="relative rounded-lg overflow-hidden bg-gray-900 shadow-lg">
             <video
               controls
               className="w-full aspect-video"
