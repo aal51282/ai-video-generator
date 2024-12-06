@@ -1,36 +1,24 @@
-from elevenlabs import generate, set_api_key, Voice, VoiceSettings
+from elevenlabs import generate, set_api_key, Voice
 import os
-from typing import Dict, Optional
+from typing import Dict
 
 class VoiceGenerator:
     VOICE_PRESETS = {
         "natural": {
-            "voice_id": "21m00Tcm4TlvDq8ikWAM",  # Rachel
-            "settings": {
-                "stability": 0.75,
-                "similarity_boost": 0.75
-            }
+            "name": "Rachel",
+            "voice_id": "21m00Tcm4TlvDq8ikWAM"
         },
         "friendly": {
-            "voice_id": "EXAVITQu4vr4xnSDxMaL",  # Bella
-            "settings": {
-                "stability": 0.8,
-                "similarity_boost": 0.7
-            }
+            "name": "Bella",
+            "voice_id": "EXAVITQu4vr4xnSDxMaL"
         },
         "professional": {
-            "voice_id": "AZnzlk1XvdvUeBnXmlld",  # Adam
-            "settings": {
-                "stability": 0.85,
-                "similarity_boost": 0.65
-            }
+            "name": "Adam",
+            "voice_id": "AZnzlk1XvdvUeBnXmlld"
         },
         "newscast": {
-            "voice_id": "MF3mGyEYCl7XYWbV9V6O",  # Elli
-            "settings": {
-                "stability": 0.9,
-                "similarity_boost": 0.6
-            }
+            "name": "Elli",
+            "voice_id": "MF3mGyEYCl7XYWbV9V6O"
         }
     }
 
@@ -43,18 +31,12 @@ class VoiceGenerator:
         try:
             # Get voice preset
             voice_preset = self.VOICE_PRESETS.get(style.lower(), self.VOICE_PRESETS["natural"])
-            voice_id = voice_preset["voice_id"]
-            settings = voice_preset["settings"]
-
-            # Generate audio with specified settings
+            
+            # Generate audio
             audio = generate(
                 text=text,
-                voice=voice_id,
-                model="eleven_monolingual_v1",
-                voice_settings=VoiceSettings(
-                    stability=settings["stability"],
-                    similarity_boost=settings["similarity_boost"]
-                )
+                voice=voice_preset["voice_id"],
+                model="eleven_monolingual_v1"
             )
             
             return audio
