@@ -1,18 +1,15 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 from app.services.image_generator import ImageGenerator
 from app.services.voice_generator import VoiceGenerator
 from app.services.video_composer import VideoComposer
-import nltk
-from typing import List
+from app.services.text_processor import TextProcessor
+from typing import List, Dict
 import asyncio
-
-# Download required NLTK data
-nltk.download('punkt')
 
 # Load environment variables
 load_dotenv()
@@ -29,6 +26,7 @@ app.add_middleware(
 )
 
 # Initialize services
+text_processor = TextProcessor()
 image_generator = ImageGenerator()
 voice_generator = VoiceGenerator()
 video_composer = VideoComposer()
@@ -38,31 +36,48 @@ class TextInput(BaseModel):
     style: str = "natural"  # Voice style
     image_style: str = "digital art"  # Image generation style
 
-def split_into_sentences(text: str) -> List[str]:
-    """Split text into sentences using NLTK"""
-    return nltk.sent_tokenize(text)
-
 @app.get("/")
 async def read_root():
     return {"status": "ok", "message": "AI Video Generator API is running"}
 
+@app.get("/styles")
+async def get_styles():
+    """Get available voice and image styles"""
+    return {
+        "voice_styles": voice_generator.get_available_voices(),
+        "image_styles": image_generator.get_available_styles()
+    }
+
 @app.post("/generate-video")
 async def generate_video(input_data: TextInput, background_tasks: BackgroundTasks):
     try:
-        # Split text into sentences
-        sentences = split_into_sentences(input_data.text)
+        # Process and segment the text
+        segments = text_processor.process_text(input_data.text)
         
-        # Generate images for each sentence
+        # Generate images for each segment
         images = []
-        for sentence in sentences:
-            image = await image_generator.generate_image(sentence, input_data.image_style)
+        for segment in segments:
+            image = await image_generator.generate_image(
+                segment["prompt"],
+                input_data.image_style
+            )
             images.append(image)
         
         # Generate voice narration
-        audio = await voice_generator.generate_voice(input_data.text, input_data.style)
+        audio = await voice_generator.generate_voice(
+            input_data.text,
+            input_data.style
+        )
+        
+        # Extract just the text from segments for video composition
+        texts = [segment["text"] for segment in segments]
         
         # Create video
-        video_path = await video_composer.create_video(images, audio, sentences)
+        video_path = await video_composer.create_video(
+            images=images,
+            audio=audio,
+            texts=texts
+        )
         
         # Return video file
         return FileResponse(
