@@ -13,6 +13,7 @@ export default function VideoGenerator() {
   const [text, setText] = useState('');
   const [imageStyle, setImageStyle] = useState('digital art');
   const [voiceStyle, setVoiceStyle] = useState('natural');
+  const [videoTitle, setVideoTitle] = useState('');
   const [generationState, setGenerationState] = useState<GenerationState>({
     status: 'idle'
   });
@@ -51,6 +52,7 @@ export default function VideoGenerator() {
 
       const blob = await response.blob();
       const videoUrl = URL.createObjectURL(blob);
+      setVideoTitle(text.split('.')[0].slice(0, 50)); // Set default title from first sentence
       setGenerationState({ status: 'success', videoUrl });
     } catch {
       setGenerationState({
@@ -58,6 +60,14 @@ export default function VideoGenerator() {
         error: 'Failed to generate video. Please try again.',
       });
     }
+  };
+
+  const getDownloadFilename = () => {
+    const sanitizedTitle = videoTitle
+      .replace(/[^a-zA-Z0-9]/g, '_') // Replace special characters with underscore
+      .replace(/_+/g, '_') // Replace multiple underscores with single
+      .trim();
+    return `${sanitizedTitle || 'generated_video'}.mp4`;
   };
 
   return (
@@ -182,6 +192,31 @@ export default function VideoGenerator() {
               Generation Complete
             </div>
           </div>
+
+          {/* Video Title Input */}
+          <div className="space-y-3">
+            <label htmlFor="videoTitle" className="block text-sm font-medium text-gray-200">
+              Video Title
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="videoTitle"
+                value={videoTitle}
+                onChange={(e) => setVideoTitle(e.target.value)}
+                placeholder="Enter a title for your video"
+                className="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-100 placeholder-gray-400 shadow-sm"
+                maxLength={100}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                {videoTitle.length}/100
+              </div>
+            </div>
+            <p className="text-xs text-gray-400">
+              This title will be used as the filename when downloading the video
+            </p>
+          </div>
+
           <div className="relative rounded-lg overflow-hidden bg-gray-900 shadow-lg">
             <video
               controls
@@ -191,9 +226,10 @@ export default function VideoGenerator() {
               Your browser does not support the video tag.
             </video>
           </div>
+
           <a
             href={generationState.videoUrl}
-            download="generated-video.mp4"
+            download={getDownloadFilename()}
             className="group relative inline-flex items-center justify-center w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
           >
             <span className="flex items-center justify-center gap-2">
