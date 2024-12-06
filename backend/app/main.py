@@ -10,6 +10,11 @@ from app.services.video_composer import VideoComposer
 from app.services.text_processor import TextProcessor
 from typing import List, Dict
 import asyncio
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -48,37 +53,74 @@ async def get_styles():
         "image_styles": image_generator.get_available_styles()
     }
 
+@app.get("/test-config")
+async def test_config():
+    """Test if API keys are properly configured"""
+    try:
+        stability_key = os.getenv('STABILITY_API_KEY')
+        elevenlabs_key = os.getenv('ELEVENLABS_API_KEY')
+        
+        return {
+            "stability_api_configured": bool(stability_key),
+            "elevenlabs_api_configured": bool(elevenlabs_key),
+            "stability_key_length": len(stability_key) if stability_key else 0,
+            "elevenlabs_key_length": len(elevenlabs_key) if elevenlabs_key else 0
+        }
+    except Exception as e:
+        logger.error(f"Error in test-config: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/generate-video")
 async def generate_video(input_data: TextInput, background_tasks: BackgroundTasks):
     try:
+        logger.info(f"Starting video generation with text: {input_data.text[:100]}...")
+        
         # Process and segment the text
+        logger.info("Processing text...")
         segments = text_processor.process_text(input_data.text)
         
         # Generate images for each segment
+        logger.info(f"Generating {len(segments)} images...")
         images = []
-        for segment in segments:
-            image = await image_generator.generate_image(
-                segment["prompt"],
-                input_data.image_style
-            )
-            images.append(image)
+        for i, segment in enumerate(segments):
+            logger.info(f"Generating image {i+1}/{len(segments)}")
+            try:
+                image = await image_generator.generate_image(
+                    segment["prompt"],
+                    input_data.image_style
+                )
+                images.append(image)
+            except Exception as e:
+                logger.error(f"Error generating image {i+1}: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Error generating image: {str(e)}")
         
         # Generate voice narration
-        audio = await voice_generator.generate_voice(
-            input_data.text,
-            input_data.style
-        )
+        logger.info("Generating voice narration...")
+        try:
+            audio = await voice_generator.generate_voice(
+                input_data.text,
+                input_data.style
+            )
+        except Exception as e:
+            logger.error(f"Error generating voice: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error generating voice: {str(e)}")
         
         # Extract just the text from segments for video composition
         texts = [segment["text"] for segment in segments]
         
         # Create video
-        video_path = await video_composer.create_video(
-            images=images,
-            audio=audio,
-            texts=texts
-        )
+        logger.info("Composing final video...")
+        try:
+            video_path = await video_composer.create_video(
+                images=images,
+                audio=audio,
+                texts=texts
+            )
+        except Exception as e:
+            logger.error(f"Error composing video: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error composing video: {str(e)}")
         
+        logger.info("Video generation complete!")
         # Return video file
         return FileResponse(
             video_path,
@@ -87,6 +129,7 @@ async def generate_video(input_data: TextInput, background_tasks: BackgroundTask
         )
         
     except Exception as e:
+        logger.error(f"Unexpected error in generate_video: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

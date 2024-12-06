@@ -38,7 +38,7 @@ class VoiceGenerator:
         set_api_key(os.getenv('ELEVENLABS_API_KEY'))
         self.default_voice_id = "21m00Tcm4TlvDq8ikWAM"  # Rachel
 
-    async def generate_voice(self, text: str, style: str = "natural", optimize_streaming_latency: int = 4) -> bytes:
+    async def generate_voice(self, text: str, style: str = "natural") -> bytes:
         """Generate voice from text with specified style"""
         try:
             # Get voice preset
@@ -51,7 +51,6 @@ class VoiceGenerator:
                 text=text,
                 voice=voice_id,
                 model="eleven_monolingual_v1",
-                optimize_streaming_latency=optimize_streaming_latency,
                 voice_settings=VoiceSettings(
                     stability=settings["stability"],
                     similarity_boost=settings["similarity_boost"]
