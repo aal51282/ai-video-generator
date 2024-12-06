@@ -4,9 +4,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
-from services.image_generator import ImageGenerator
-from services.voice_generator import VoiceGenerator
-from services.video_composer import VideoComposer
+from app.services.image_generator import ImageGenerator
+from app.services.voice_generator import VoiceGenerator
+from app.services.video_composer import VideoComposer
 import nltk
 from typing import List
 import asyncio
