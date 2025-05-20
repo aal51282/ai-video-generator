@@ -50,6 +50,9 @@ This project generates short videos from text input using various AI technologie
    ```
    STABILITY_API_KEY=your_key_here
    ELEVENLABS_API_KEY=your_key_here
+
+   https://platform.stability.ai/account/keys
+   https://elevenlabs.io/app/settings/api-keys
    ```
 
 ## Project Structure
